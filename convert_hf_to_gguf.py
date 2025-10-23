@@ -3538,8 +3538,13 @@ class Qwen25OmniModel(Qwen2VLVisionModel):
         return super().modify_tensors(data_torch, name, bid)
 
 
+<<<<<<< HEAD
 @ModelBase.register("Qwen3VLForConditionalGeneration", "Qwen3VLMoeForConditionalGeneration")
 class Qwen3VLVisionModel(MmprojModel):
+=======
+@ModelBase.register("Qwen3VLMoeForConditionalGeneration")
+class Qwen3VLMoeVisionModel(MmprojModel):
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         assert self.has_vision_encoder
@@ -3547,7 +3552,11 @@ class Qwen3VLVisionModel(MmprojModel):
 
         # Compute image_size if not present
         if "image_size" not in self.hparams_vision:
+<<<<<<< HEAD
             # For Qwen3VL/Qwen3VLMoe, compute from num_position_embeddings
+=======
+            # For Qwen3VLMoe, compute from num_position_embeddings
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
             num_pos = self.hparams_vision.get("num_position_embeddings", 2304)
             patch_size = self.hparams_vision.get("patch_size", 16)
             # num_position_embeddings = (image_size / patch_size) ** 2
@@ -3592,10 +3601,15 @@ class Qwen3VLVisionModel(MmprojModel):
             self.gguf_writer.add_vision_deepstack_layers(self.deepstack_layers)
 
     def modify_tensors(self, data_torch: Tensor, name: str, bid: int | None) -> Iterable[tuple[str, Tensor]]:
+<<<<<<< HEAD
         # Skip text model tensors - they go in the text model file
         if name.startswith("model.language_model.") or name.startswith("lm_head."):
             return []
         
+=======
+        del bid  # unused
+
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
         if name.startswith("model.visual."):
             name = name.replace("model.visual.", "visual.", 1)
 
@@ -3652,8 +3666,13 @@ class Qwen3VLVisionModel(MmprojModel):
             ]
 
         if name == "visual.patch_embed.proj.bias":
+<<<<<<< HEAD
             # Include the bias - it's used by the C++ code
             return [(gguf.TENSOR_NAMES[gguf.MODEL_TENSOR.V_ENC_EMBD_PATCH] + ".bias", data_torch)]
+=======
+            # Skip bias for Qwen3VL - the C++ code expects it to be null
+            return []
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
 
         if name.startswith("visual."):
             if ".qkv." in name:
@@ -3676,8 +3695,12 @@ class Qwen3VLVisionModel(MmprojModel):
 
             return [(self.map_tensor_name(name), data_torch)]
 
+<<<<<<< HEAD
         # Fall back to parent class for other tensors
         return super().modify_tensors(data_torch, name, bid)
+=======
+        return []
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
 
 @ModelBase.register("InternVisionModel")
 class InternVisionModel(MmprojModel):
@@ -4003,6 +4026,7 @@ class Qwen3MoeModel(Qwen2MoeModel):
         super().set_vocab()
 
 
+<<<<<<< HEAD
 @ModelBase.register("Qwen3VLForConditionalGeneration")
 class Qwen3VLTextModel(Qwen3Model):
     model_arch = gguf.MODEL_ARCH.QWEN3VL
@@ -4032,6 +4056,8 @@ class Qwen3VLTextModel(Qwen3Model):
         return super().modify_tensors(data_torch, name, bid)
 
 
+=======
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
 @ModelBase.register("Qwen3VLMoeForConditionalGeneration")
 class Qwen3VLMoeTextModel(Qwen3MoeModel):
     model_arch = gguf.MODEL_ARCH.QWEN3VLMOE
@@ -4053,6 +4079,7 @@ class Qwen3VLMoeTextModel(Qwen3MoeModel):
 
             logger.info(f"MRoPE sections: {mrope_section[:4]}")
 
+<<<<<<< HEAD
     def modify_tensors(self, data_torch: Tensor, name: str, bid: int | None) -> Iterable[tuple[str, Tensor]]:
         # Skip vision tensors - they go in the mmproj file
         if name.startswith("model.visual."):
@@ -4060,6 +4087,8 @@ class Qwen3VLMoeTextModel(Qwen3MoeModel):
         
         return super().modify_tensors(data_torch, name, bid)
 
+=======
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
 
 @ModelBase.register("GPT2LMHeadModel")
 class GPT2Model(TextModel):

@@ -352,7 +352,10 @@ class MODEL_ARCH(IntEnum):
     QWEN2VL          = auto()
     QWEN3            = auto()
     QWEN3MOE         = auto()
+<<<<<<< HEAD
     QWEN3VL          = auto()
+=======
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
     QWEN3VLMOE       = auto()
     PHI2             = auto()
     PHI3             = auto()
@@ -703,7 +706,10 @@ MODEL_ARCH_NAMES: dict[MODEL_ARCH, str] = {
     MODEL_ARCH.QWEN2VL:          "qwen2vl",
     MODEL_ARCH.QWEN3:            "qwen3",
     MODEL_ARCH.QWEN3MOE:         "qwen3moe",
+<<<<<<< HEAD
     MODEL_ARCH.QWEN3VL:          "qwen3vl",
+=======
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
     MODEL_ARCH.QWEN3VLMOE:       "qwen3vlmoe",
     MODEL_ARCH.PHI2:             "phi2",
     MODEL_ARCH.PHI3:             "phi3",
@@ -1512,6 +1518,7 @@ MODEL_TENSORS: dict[MODEL_ARCH, list[MODEL_TENSOR]] = {
         MODEL_TENSOR.FFN_DOWN_EXP,
         MODEL_TENSOR.FFN_UP_EXP,
     ],
+<<<<<<< HEAD
     MODEL_ARCH.QWEN3VL: [
         MODEL_TENSOR.TOKEN_EMBD,
         MODEL_TENSOR.OUTPUT_NORM,
@@ -1529,6 +1536,8 @@ MODEL_TENSORS: dict[MODEL_ARCH, list[MODEL_TENSOR]] = {
         MODEL_TENSOR.FFN_DOWN,
         MODEL_TENSOR.FFN_UP,
     ],
+=======
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
     MODEL_ARCH.QWEN3VLMOE: [
         MODEL_TENSOR.TOKEN_EMBD,
         MODEL_TENSOR.OUTPUT_NORM,

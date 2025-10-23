@@ -32,7 +32,10 @@ static const std::map<llm_arch, const char *> LLM_ARCH_NAMES = {
     { LLM_ARCH_QWEN2VL,          "qwen2vl"          },
     { LLM_ARCH_QWEN3,            "qwen3"            },
     { LLM_ARCH_QWEN3MOE,         "qwen3moe"         },
+<<<<<<< HEAD
     { LLM_ARCH_QWEN3_VL,         "qwen3vl"          },
+=======
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
     { LLM_ARCH_QWEN3_VL_MOE,     "qwen3vlmoe"       },
     { LLM_ARCH_PHI2,             "phi2"             },
     { LLM_ARCH_PHI3,             "phi3"             },
@@ -782,6 +785,7 @@ static const std::map<llm_arch, std::map<llm_tensor, const char *>> LLM_TENSOR_N
         },
     },
     {
+<<<<<<< HEAD
         LLM_ARCH_QWEN3_VL,
         {
             { LLM_TENSOR_TOKEN_EMBD,      "token_embd" },
@@ -801,6 +805,8 @@ static const std::map<llm_arch, std::map<llm_tensor, const char *>> LLM_TENSOR_N
         },
     },
     {
+=======
+>>>>>>> remote-JJJYmmm/qwen3vl-1022
         LLM_ARCH_QWEN3_VL_MOE,
         {
             { LLM_TENSOR_TOKEN_EMBD,         "token_embd" },
