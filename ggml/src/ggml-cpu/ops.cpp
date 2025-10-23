@@ -5516,16 +5516,6 @@ static void ggml_mrope_cache_init(
 
         float theta = theta_t;
 
-<<<<<<< HEAD
-        if (sector >= sections[0] && sector < sec_w) {
-            theta = theta_h;
-        }
-        else if (sector >= sec_w && sector < sec_w + sections[2]) {
-            theta = theta_w;
-        }
-        else if (sector >= sec_w + sections[2]) {
-            theta = theta_e;
-=======
         if (is_interleaved_mrope) {
             // thwthwthw...ttt
             if (sector % 3 == 1 && sector < 3 * sections[1]) {
@@ -5545,7 +5535,6 @@ static void ggml_mrope_cache_init(
             else if (sector >= sec_w + sections[2]) {
                 theta = theta_e;
             }
->>>>>>> remote-JJJYmmm/qwen3vl-1022
         }
 
         rope_yarn(

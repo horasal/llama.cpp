@@ -660,7 +660,7 @@ struct clip_graph {
         return gf;
     }
 
-    // Qwen2VL, Qwen2.5VL and Qwen3VL use M-RoPE
+    // Qwen2VL and Qwen2.5VL use M-RoPE
     ggml_cgraph * build_qwen2vl() {
         GGML_ASSERT(model.class_embedding == nullptr);
 
@@ -740,22 +740,16 @@ struct clip_graph {
             ggml_tensor * pos_embd_interp = ggml_interpolate(ctx0, pos_embd_2d,
                                                               n_embd, n_patches_x, n_patches_y, 1,
                                                               GGML_SCALE_MODE_BILINEAR);
-
-<<<<<<< HEAD
-=======
+            
             // because of spatial merge, we need to rearange like the input
-            pos_embd_interp = ggml_cont_4d(
-                ctx0, pos_embd_interp,
-                n_embd * 2, n_patches_x / 2, n_patches_y, batch_size);
-            pos_embd_interp = ggml_reshape_4d(
-                ctx0, pos_embd_interp,
-                n_embd * 2, n_patches_x / 2, 2, batch_size * (n_patches_y / 2));
+            pos_embd_interp = ggml_cont_4d(ctx0, pos_embd_interp,
+                                           n_embd * 2, n_patches_x / 2, n_patches_y, batch_size);
+            pos_embd_interp = ggml_reshape_4d(ctx0, pos_embd_interp,
+                                              n_embd * 2, n_patches_x / 2, 2, batch_size * (n_patches_y / 2));
             pos_embd_interp = ggml_permute(ctx0, pos_embd_interp, 0, 2, 1, 3);
-            pos_embd_interp = ggml_cont_3d(
-                ctx0, pos_embd_interp,
-                n_embd, n_patches_x * n_patches_y, batch_size);
+            pos_embd_interp = ggml_cont_3d(ctx0, pos_embd_interp,
+                                           n_embd, n_patches_x * n_patches_y, batch_size);
 
->>>>>>> remote-JJJYmmm/qwen3vl-1022
             // Step 3: Reshape to [n_embd, n_pos, 1] to match inpL shape
             pos_embd_interp = ggml_reshape_3d(ctx0, pos_embd_interp, n_embd, n_pos, 1);
 
@@ -932,17 +926,11 @@ struct clip_graph {
                 LOG_INF("%s: DeepStack feature %zu after merger: [%lld, %lld, %lld]\n", __func__, i, feat->ne[0], feat->ne[1], feat->ne[2]);
 
                 // Add to the main embeddings (fuse multi-level features)
-<<<<<<< HEAD
-                embeddings = ggml_add(ctx0, embeddings, feat);
-=======
                 // embeddings = ggml_add(ctx0, embeddings, feat);
-
-                // feat = ggml_scale(ctx0, feat, 0.0f);
 
                 // @JJJYmmm fix, we should add deepstack feautes into the LLM layers
                 // rather than just add fusion
                 embeddings = ggml_concat(ctx0, embeddings, feat, 0);
->>>>>>> remote-JJJYmmm/qwen3vl-1022
             }
         }
 
@@ -4658,15 +4646,10 @@ int clip_n_mmproj_embd(const struct clip_ctx * ctx) {
         case PROJECTOR_TYPE_GLM_EDGE:
             return ctx->model.mm_model_mlp_3_w->ne[1];
         case PROJECTOR_TYPE_QWEN2VL:
-<<<<<<< HEAD
-        case PROJECTOR_TYPE_QWEN3VLMOE:
-=======
->>>>>>> remote-JJJYmmm/qwen3vl-1022
             return ctx->model.mm_1_b->ne[0];
         case PROJECTOR_TYPE_QWEN3VLMOE:
             // concat deepstack features along feature dimensions
             return ctx->model.mm_1_b->ne[0] * (1 + ctx->model.hparams.deepstack_layers.size());
-            // return ctx->model.mm_1_b->ne[0];
         case PROJECTOR_TYPE_GEMMA3:
             return ctx->model.mm_input_proj_w->ne[0];
         case PROJECTOR_TYPE_IDEFICS3:

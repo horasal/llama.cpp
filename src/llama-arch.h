@@ -36,10 +36,7 @@ enum llm_arch {
     LLM_ARCH_QWEN2VL,
     LLM_ARCH_QWEN3,
     LLM_ARCH_QWEN3MOE,
-<<<<<<< HEAD
     LLM_ARCH_QWEN3_VL,
-=======
->>>>>>> remote-JJJYmmm/qwen3vl-1022
     LLM_ARCH_QWEN3_VL_MOE,
     LLM_ARCH_PHI2,
     LLM_ARCH_PHI3,
