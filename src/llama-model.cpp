@@ -9775,18 +9775,6 @@ struct llm_build_qwen3vl : public llm_graph_context {
         } else {
             // Text input: main_embed = inpL, deepstack = zero
             main_embed = inpL;
-            ds0 = ggml_new_tensor_2d(ctx0, GGML_TYPE_F32, n_embd_main, n_tokens);
-            ds1 = ggml_new_tensor_2d(ctx0, GGML_TYPE_F32, n_embd_main, n_tokens);
-            ds2 = ggml_new_tensor_2d(ctx0, GGML_TYPE_F32, n_embd_main, n_tokens);
-
-
-            ds0 = ggml_scale(ctx0, ds0, 0.0f);
-            ds1 = ggml_scale(ctx0, ds1, 0.0f);
-            ds2 = ggml_scale(ctx0, ds2, 0.0f);
-
-            ggml_build_forward_expand(gf, ds0);
-            ggml_build_forward_expand(gf, ds1);
-            ggml_build_forward_expand(gf, ds2);
         }
 
         inpL = main_embed;
@@ -9896,6 +9884,16 @@ struct llm_build_qwen3vl : public llm_graph_context {
             cur = build_cvec(cur, il);
             cb(cur, "l_out", il);
 
+            if (ubatch.embd) {
+                switch (il) {
+                    case 0: cur = ggml_add(ctx0, cur, ds0); break;
+                    case 1: cur = ggml_add(ctx0, cur, ds1); break;
+                    case 2: cur = ggml_add(ctx0, cur, ds2); break;
+                    default: break;
+                }
+                cb(cur, "l_out_with_deepstack", il);
+            }
+
             // input for next layer
             inpL = cur;
         }
@@ -9940,7 +9938,7 @@ struct llm_build_qwen3vlmoe : public llm_graph_context {
         if (ubatch.embd) {
             // Image input: split 4*n_embd
             main_embed = ggml_view_2d(ctx0, inpL, n_embd_main, n_tokens, inpL->nb[1], 0);
-            ds0 = ggml_view_2d(ctx0, inpL, n_embd_main, n_tokens, inpL->nb[1], n_embd_main * sizeof(float));
+            ds0 = ggml_view_2d(ctx0, inpL, n_embd_main, n_tokens, inpL->nb[1],     n_embd_main * sizeof(float));
             ds1 = ggml_view_2d(ctx0, inpL, n_embd_main, n_tokens, inpL->nb[1], 2 * n_embd_main * sizeof(float));
             ds2 = ggml_view_2d(ctx0, inpL, n_embd_main, n_tokens, inpL->nb[1], 3 * n_embd_main * sizeof(float));
 
@@ -9952,18 +9950,6 @@ struct llm_build_qwen3vlmoe : public llm_graph_context {
         } else {
             // Text input: main_embed = inpL, deepstack = zero
             main_embed = inpL;
-            ds0 = ggml_new_tensor_2d(ctx0, GGML_TYPE_F32, n_embd_main, n_tokens);
-            ds1 = ggml_new_tensor_2d(ctx0, GGML_TYPE_F32, n_embd_main, n_tokens);
-            ds2 = ggml_new_tensor_2d(ctx0, GGML_TYPE_F32, n_embd_main, n_tokens);
-
-
-            ds0 = ggml_scale(ctx0, ds0, 0.0f);
-            ds1 = ggml_scale(ctx0, ds1, 0.0f);
-            ds2 = ggml_scale(ctx0, ds2, 0.0f);
-
-            ggml_build_forward_expand(gf, ds0);
-            ggml_build_forward_expand(gf, ds1);
-            ggml_build_forward_expand(gf, ds2);
         }
 
 
@@ -10066,6 +10052,16 @@ struct llm_build_qwen3vlmoe : public llm_graph_context {
 
             cur = build_cvec(cur, il);
             cb(cur, "l_out", il);
+            
+            if (ubatch.embd) {
+                switch (il) {
+                    case 0: cur = ggml_add(ctx0, cur, ds0); break;
+                    case 1: cur = ggml_add(ctx0, cur, ds1); break;
+                    case 2: cur = ggml_add(ctx0, cur, ds2); break;
+                    default: break;
+                }
+                cb(cur, "l_out_with_deepstack", il);
+            }
 
             // input for next layer
             inpL = cur;
