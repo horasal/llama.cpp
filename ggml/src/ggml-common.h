@@ -1118,7 +1118,7 @@ GGML_TABLE_BEGIN(int8_t, kvalues_mxfp4, 16)
 GGML_TABLE_END()
 
 // 16^(-1)
-#define MXFP6_SCALER 0.0625f
+#define MXFP6_E3M2_SCALER 0.0625f
 GGML_TABLE_BEGIN(int16_t, kvalues_mxfp6_e3m2, 64)
     0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28,
     32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224,
@@ -1129,7 +1129,7 @@ GGML_TABLE_BEGIN(int16_t, kvalues_mxfp6_e3m2, 64)
 GGML_TABLE_END()
 
 // 8^(-1)
-#define MXFP6_SCALER 0.125f
+#define MXFP6_E2M3_SCALER 0.125f
 GGML_TABLE_BEGIN(int16_t, kvalues_mxfp6_e2m3, 64)
     0, 1, 2, 3, 4, 5, 6, 7,
     8, 9, 10, 11, 12, 13, 14, 15,

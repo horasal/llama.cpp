@@ -860,7 +860,7 @@ void ggml_vec_dot_mxfp6_e3m2_q8_0(int n, float * GGML_RESTRICT s, size_t bs, con
         int ib = 0;
         float sumf = 0;
 
-    #if defined __AVX2__
+    #if 0//defined __AVX2__
         __m256 accum_ps = _mm256_setzero_ps();
 
         for (; ib + 1 < nb; ib += 2) {
@@ -987,7 +987,7 @@ void ggml_vec_dot_mxfp6_e2m3_q8_0(int n, float * GGML_RESTRICT s, size_t bs, con
         int ib = 0;
         float sumf = 0;
 
-    #if defined __AVX2__
+    #if 0 //defined __AVX2__
         __m256 accum_ps = _mm256_setzero_ps();
 
         for (; ib + 1 < nb; ib += 2) {
