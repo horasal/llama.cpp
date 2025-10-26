@@ -919,7 +919,6 @@ class MXFP6E3M2(__Quant, qtype=GGMLQuantizationType.MXFP6E3M2):
 
         with np.errstate(divide="ignore"):
             # convert log2(d_max) to e8m0
-            # log2(448) = 8.8 -> shift 9
             e = np.where(d_max > 0, np.floor(np.log2(d_max)) - 4 + 127, 0).astype(
                 np.uint8
             )
@@ -978,7 +977,7 @@ class MXFP6E3M2(__Quant, qtype=GGMLQuantizationType.MXFP6E3M2):
         indices = indices.reshape((n_blocks, cls.block_size, 1))
 
         kvalues = np.array(cls.kvalues, dtype=np.int16).reshape(1, 1, 64)
-        qs_dequant = np.take_long_axis(kvalues, indices, axis=-1).reshape(
+        qs_dequant = np.take_along_axis(kvalues, indices, axis=-1).reshape(
             (n_blocks, cls.block_size)
         )
 
@@ -1073,7 +1072,6 @@ class MXFP6E2M3(__Quant, qtype=GGMLQuantizationType.MXFP6E2M3):
 
         with np.errstate(divide="ignore"):
             # convert log2(d_max) to e8m0
-            # log2(448) = 8.8 -> shift 9
             e = np.where(d_max > 0, np.floor(np.log2(d_max)) - 3 + 127, 0).astype(
                 np.uint8
             )
@@ -1132,7 +1130,7 @@ class MXFP6E2M3(__Quant, qtype=GGMLQuantizationType.MXFP6E2M3):
         indices = indices.reshape((n_blocks, cls.block_size, 1))
 
         kvalues = np.array(cls.kvalues, dtype=np.int16).reshape(1, 1, 64)
-        qs_dequant = np.take_long_axis(kvalues, indices, axis=-1).reshape(
+        qs_dequant = np.take_along_axis(kvalues, indices, axis=-1).reshape(
             (n_blocks, cls.block_size)
         )
 

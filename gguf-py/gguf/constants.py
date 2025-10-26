@@ -2956,8 +2956,8 @@ class GGMLQuantizationType(IntEnum):
     TQ1_0 = 34
     TQ2_0 = 35
     MXFP4 = 39
-    MXFP6E3M2 = 40
-    MXFP6E2M3 = 41
+    MXFP6_E3M2 = 40
+    MXFP6_E2M3 = 41
 
 
 class ExpertGatingFuncType(IntEnum):
