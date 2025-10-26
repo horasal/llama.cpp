@@ -240,7 +240,7 @@ void ggml_vec_dot_mxfp6_e3m2_q8_0_generic(int n, float * GGML_RESTRICT s, size_t
 
     for (; ib < nb; ++ib) {
         const float d = GGML_CPU_FP16_TO_FP32(y[ib].d)*GGML_E8M0_TO_FP32_HALF(x[ib].e);
-        int sumi1 = 0;
+        int sumi = 0;
         // Q8_0 (y) * MXFP6 (block_size = 32)
         for (int j = 0; j < QK_MXFP6_E3M2/4; ++j) {
             // Current Packed MXFP6
@@ -252,7 +252,6 @@ void ggml_vec_dot_mxfp6_e3m2_q8_0_generic(int n, float * GGML_RESTRICT s, size_t
             const uint8_t b1 = q3[1];
             const uint8_t b2 = q3[2];
 
-            const uint8_t v0_idx = b0 & 0x3F;
             const uint8_t v0_idx = b0 & 0x3F;
             const uint8_t v1_idx = (b0 >> 6) | ((b1 & 0x0F) << 2);
             const uint8_t v2_idx = (b1 >> 4) | ((b2 & 0x03) << 4);

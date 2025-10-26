@@ -301,7 +301,7 @@ void quantize_row_mxfp6_e3m2_ref(const float * GGML_RESTRICT x, block_mxfp6_e3m2
             }
         }
 
-        const uint8_t e = amax > 0.0f ? (uint8_t) (floorf(log2f(amax)) - 9 + 127) : 0;
+        const uint8_t e = amax > 0.0f ? (uint8_t) (floorf(log2f(amax)) - 4 + 127) : 0;
 
         const float d = GGML_E8M0_TO_FP32_HALF(e);
 

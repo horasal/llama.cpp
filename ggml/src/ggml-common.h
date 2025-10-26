@@ -102,6 +102,10 @@ typedef sycl::half2 ggml_half2;
 #define QI_MXFP4 (QK_MXFP4 / (4 * QR_MXFP4))
 #define QR_MXFP4 2
 
+#define QI_MXFP6_E3M2 (QK_MXFP6_E3M2 * 3 / (4 * 4))
+// FIXME: QR(Value Per Byte) does not match this
+#define QR_MXFP6_E3M2 2
+
 #define QI5_0 (QK5_0 / (4 * QR5_0))
 #define QR5_0 2
 
@@ -1103,6 +1107,8 @@ GGML_TABLE_BEGIN(int8_t, kvalues_mxfp4, 16)
     0, 1, 2, 3, 4, 6, 8, 12, 0, -1, -2, -3, -4, -6, -8, -12,
 GGML_TABLE_END()
 
+// 16^(-1)
+#define MXFP6_SCALER 0.0625f
 GGML_TABLE_BEGIN(int16_t, kvalues_mxfp6_e3m2, 64)
     0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28,
     32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224,

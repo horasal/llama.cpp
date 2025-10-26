@@ -860,7 +860,7 @@ void ggml_vec_dot_mxfp6_e3m2_q8_0(int n, float * GGML_RESTRICT s, size_t bs, con
         int ib = 0;
         float sumf = 0;
 
-    #if defined __AVX2__
+    #if 0 //defined __AVX2__
         __m256 accum_ps = _mm256_setzero_ps();
 
         for (; ib + 1 < nb; ib += 2) {
@@ -870,7 +870,7 @@ void ggml_vec_dot_mxfp6_e3m2_q8_0(int n, float * GGML_RESTRICT s, size_t bs, con
             const block_mxfp6_e3m2 * x2 = &x[ib + 1];
             const block_q8_0       * y2 = &y[ib + 1];
 
-            alignas(32) int16_t k_vals_1[32];
+            int16_t k_vals_1[32];
             {
                 const uint8_t * q3 = x1->qs;
                 for (int j = 0; j < 8; ++j) {
@@ -885,7 +885,7 @@ void ggml_vec_dot_mxfp6_e3m2_q8_0(int n, float * GGML_RESTRICT s, size_t bs, con
                 }
             }
 
-            alignas(32) int16_t k_vals_2[32];
+            int16_t k_vals_2[32];
             {
                 const uint8_t * q3 = x2->qs;
                 for (int j = 0; j < 8; ++j) {

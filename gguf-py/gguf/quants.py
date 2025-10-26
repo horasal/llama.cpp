@@ -920,7 +920,7 @@ class MXFP6E3M2(__Quant, qtype=GGMLQuantizationType.MXFP6E3M2):
         with np.errstate(divide="ignore"):
             # convert log2(d_max) to e8m0
             # log2(448) = 8.8 -> shift 9
-            e = np.where(d_max > 0, np.floor(np.log2(d_max)) - 9 + 127, 0).astype(
+            e = np.where(d_max > 0, np.floor(np.log2(d_max)) - 4 + 127, 0).astype(
                 np.uint8
             )
 

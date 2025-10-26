@@ -506,7 +506,7 @@ static __global__ void dequantize_block_mxfp6_e3m2(const void * __restrict__ vx,
 
         const uint8_t b0 = q3[0];
         const uint8_t b1 = q3[1];
-        const uint8_t b3 = q3[2];
+        const uint8_t b2 = q3[2];
 
         const uint8_t v0_idx = b0 & 0x3F;
         const uint8_t v1_idx = (b0 >> 6) | ((b1 & 0x0F) << 2);
