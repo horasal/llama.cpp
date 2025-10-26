@@ -106,6 +106,10 @@ typedef sycl::half2 ggml_half2;
 // FIXME: QR(Value Per Byte) does not match this
 #define QR_MXFP6_E3M2 2
 
+#define QI_MXFP6_E2M3 (QK_MXFP6_E3M2 * 3 / (4 * 4))
+// FIXME: QR(Value Per Byte) does not match this
+#define QR_MXFP6_E2M3 2
+
 #define QI5_0 (QK5_0 / (4 * QR5_0))
 #define QR5_0 2
 
@@ -205,6 +209,12 @@ typedef struct {
 } block_mxfp6_e3m2;
 static_assert(sizeof(block_mxfp6_e3m2) == sizeof(uint8_t) + QK_MXFP6_E3M2 * 3 / 4, "wrong mxfp6_e3m2 block size/padding");
 
+#define QK_MXFP6_E2M3 32
+typedef struct {
+    uint8_t e; // E8M0
+    uint8_t qs[QK_MXFP6_E2M3 * 3 / 4]; // 6bits -> 8bits
+} block_mxfp6_e2m3;
+static_assert(sizeof(block_mxfp6_e2m3) == sizeof(uint8_t) + QK_MXFP6_E2M3 * 3 / 4, "wrong mxfp6_e2m3 block size/padding");
 
 #define QK5_0 32
 typedef struct {
@@ -1117,6 +1127,20 @@ GGML_TABLE_BEGIN(int16_t, kvalues_mxfp6_e3m2, 64)
     -32, -40, -48, -56, -64, -80, -96, -112, -128, -160, -192, -224,
     -256, -320, -384, -448,
 GGML_TABLE_END()
+
+// 8^(-1)
+#define MXFP6_SCALER 0.125f
+GGML_TABLE_BEGIN(int16_t, kvalues_mxfp6_e2m3, 64)
+    0, 1, 2, 3, 4, 5, 6, 7,
+    8, 9, 10, 11, 12, 13, 14, 15,
+    16, 18, 20, 22, 24, 26, 28, 30,
+    32, 36, 40, 44, 48, 52, 56, 60,
+    0, -1, -2, -3, -4, -5, -6, -7,
+    -8, -9, -10, -11, -12, -13, -14, -15,
+    -16, -18, -20, -22, -24, -26, -28, -30,
+    -32, -36, -40, -44, -48, -52, -56, -60
+GGML_TABLE_END()
+
 
 #define NGRID_IQ1S 2048
 #define IQ1S_DELTA 0.125f

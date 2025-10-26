@@ -985,6 +985,160 @@ class MXFP6E3M2(__Quant, qtype=GGMLQuantizationType.MXFP6E3M2):
         return d * qs_dequant.astype(np.float32)
 
 
+class MXFP6E2M3(__Quant, qtype=GGMLQuantizationType.MXFP6E2M3):
+    # e2m3 values (origin * 8)
+    # ref: https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf
+    kvalues = (
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        18,
+        20,
+        22,
+        24,
+        26,
+        28,
+        30,
+        32,
+        36,
+        40,
+        44,
+        48,
+        52,
+        56,
+        60,
+        0,
+        -1,
+        -2,
+        -3,
+        -4,
+        -5,
+        -6,
+        -7,
+        -8,
+        -9,
+        -10,
+        -11,
+        -12,
+        -13,
+        -14,
+        -15,
+        -16,
+        -18,
+        -20,
+        -22,
+        -24,
+        -26,
+        -28,
+        -30,
+        -32,
+        -36,
+        -40,
+        -44,
+        -48,
+        -52,
+        -56,
+        -60,
+    )
+
+    @staticmethod
+    # see ggml_e8m0_to_fp32_half in ggml-impl.h
+    def e8m0_to_fp32_half(x: np.ndarray) -> np.ndarray:
+        bits = np.where(
+            x < 2,
+            np.uint32(0x00200000) << np.uint32(x),
+            np.uint32(x - 1) << np.uint32(23),
+        )
+        return bits.view(np.float32)
+
+    @classmethod
+    def quantize_blocks(cls, blocks: np.ndarray) -> np.ndarray:
+        n_blocks = blocks.shape[0]
+
+        d_max = abs(blocks).max(axis=-1, keepdims=True)
+
+        with np.errstate(divide="ignore"):
+            # convert log2(d_max) to e8m0
+            # log2(448) = 8.8 -> shift 9
+            e = np.where(d_max > 0, np.floor(np.log2(d_max)) - 3 + 127, 0).astype(
+                np.uint8
+            )
+
+        # d is float of above e8m0
+        d = cls.e8m0_to_fp32_half(e)
+
+        kvalues = np.array(cls.kvalues, dtype=np.int16).reshape((1, 1, 64))
+
+        # calculate error between original value and kvalue table
+        errs = np.abs(
+            d.reshape((n_blocks, 1, 1)) * kvalues.astype(np.float32)
+            - blocks.reshape((n_blocks, cls.block_size, 1))
+        )
+        best = np.argmin(errs, axis=-1, keepdims=True).astype(np.uint8)
+
+        # pack MXFP6 to bytes
+        # 4 * 6 bits -> 3 * 8 bits -> 3 bytes
+        # block_size == 32:  [n_blocks, 32] -> [n_blocks, 8, 4]
+        qs_groups = best.reshape((n_blocks, -1, 4))
+        v0 = qs_groups[..., 0]
+        v1 = qs_groups[..., 1]
+        v2 = qs_groups[..., 2]
+        v3 = qs_groups[..., 3]
+
+        # 1100 0000
+        b0 = v0 | ((v1 & 0x03) << 6)
+        # 2222 1111
+        b1 = (v1 >> 2) | ((v2 & 0x0F) << 4)
+        # 3333 3322
+        b2 = (v2 >> 4) | (v3 << 2)
+        packed = np.stack([b0, b1, b2], axis=-1)
+        qs = packed.reshape((n_blocks, (cls.block_size // 4) * 3))
+
+        return np.concatenate([e, qs], axis=-1)
+
+    @classmethod
+    def dequantize_blocks(cls, blocks: np.ndarray) -> np.ndarray:
+        n_blocks = blocks.shape[0]
+
+        e, qs = np.hsplit(blocks, [1])
+
+        d = cls.e8m0_to_fp32_half(e).astype(np.float32)
+
+        qs_groups = qs.reshape((n_blocks, -1, 3))
+        b0 = qs_groups[..., 0]
+        b1 = qs_groups[..., 1]
+        b2 = qs_groups[..., 2]
+
+        v0 = b0 & 0x3F
+        v1 = (b0 >> 6) | ((b1 & 0x0F) << 2)
+        v2 = (b1 >> 4) | ((b2 & 0x03) << 4)
+        v3 = b2 >> 2
+
+        indices = np.stack([v0, v1, v2, v3], axis=-1)
+        indices = indices.reshape((n_blocks, cls.block_size, 1))
+
+        kvalues = np.array(cls.kvalues, dtype=np.int16).reshape(1, 1, 64)
+        qs_dequant = np.take_long_axis(kvalues, indices, axis=-1).reshape(
+            (n_blocks, cls.block_size)
+        )
+
+        return d * qs_dequant.astype(np.float32)
+
+
 class IQ2_XXS(__Quant, qtype=GGMLQuantizationType.IQ2_XXS):
     ksigns: bytes = (
         b"\x00\x81\x82\x03\x84\x05\x06\x87\x88\x09\x0a\x8b\x0c\x8d\x8e\x0f"
