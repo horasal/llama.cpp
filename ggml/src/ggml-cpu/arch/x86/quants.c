@@ -856,8 +856,6 @@ void ggml_vec_dot_mxfp6_e3m2_q8_0(int n, float * GGML_RESTRICT s, size_t bs, con
     const block_q8_0 * GGML_RESTRICT y = vy;
     const int nb = n / QK_MXFP6_E3M2;
 
-    int ib = 0;
-
     #if defined __AVX2__
         __m256 acc = _mm256_setzero_ps();
         const int16_t* kvalues = (const int16_t*)kvalues_mxfp6_e3m2;
@@ -928,8 +926,6 @@ void ggml_vec_dot_mxfp6_e2m3_q8_0(int n, float * GGML_RESTRICT s, size_t bs, con
     const block_mxfp6_e2m3 * GGML_RESTRICT x = vx;
     const block_q8_0 * GGML_RESTRICT y = vy;
     const int nb = n / QK_MXFP6_E2M3;
-
-    int ib = 0;
 
     #if defined __AVX2__
     __m256 acc = _mm256_setzero_ps();
