@@ -313,6 +313,72 @@ static __device__ __forceinline__ float vec_dot_mxfp4_q8_1(
     return d * sumi;
 }
 
+#define VDR_MXFP6_E3M2_Q8_1_MMVQ 3
+#define VDR_MXFP6_E3M2_Q8_1_MMQ  4
+static __device__ __forceinline__ float vec_dot_mxfp6_e3m2_q8_1(
+    const void * __restrict__ vbq, const block_q8_1 * __restrict__ bq8_1, const int & kbx, const int & iqs) {
+
+    const block_mxfp6_e3m2 * bq6 = (const block_mxfp6_e3m2 *) vbq + kbx;
+
+    const int8_t * q8 = (const int8_t *) bq8_1->qs;
+    const uint8_t* q3 = (const uint8_t*) bp6->qs;
+
+    float sumf_0 = 0.0f; // 0 .. 15
+    float sumf_1 = 0.0f; // 16 .. 31
+
+#pragma unroll
+    for (int j = 0; j < 4; ++j) {
+        const uint8_t b0 = q3[0];
+        const uint8_t b1 = q3[1];
+        const uint8_t b2 = q3[2];
+        q3 += 3;
+        const int16_t k0 = kvalues_mxfp6_e3m2[b0 & 0x3F];
+        const int16_t k1 = kvalues_mxfp6_e3m2[(b0 >> 6) | ((b1 & 0x0F) << 2)];
+        const int16_t k2 = kvalues_mxfp6_e3m2[(b1 >> 4) | ((b2 & 0x03) << 4)];
+        const int16_t k3 = kvalues_mxfp6_e3m2[b2 >> 2];
+
+        const int8_t y0 = q8[4*j + 0];
+        const int8_t y1 = q8[4*j + 1];
+        const int8_t y2 = q8[4*j + 2];
+        const int8_t y3 = q8[4*j + 3];
+
+        sumf_0 += (float)(k0 * y0);
+        sumf_0 += (float)(k1 * y1);
+        sumf_0 += (float)(k2 * y2);
+        sumf_0 += (float)(k3 * y3);
+    }
+    #pragma unroll
+    for (int j = 4; j < 8; ++j) {
+        const uint8_t b0 = q3[0];
+        const uint8_t b1 = q3[1];
+        const uint8_t b2 = q3[2];
+        q3 += 3;
+
+        const int16_t k0 = kvalues_mxfp6_e3m2[b0 & 0x3F];
+        const int16_t k1 = kvalues_mxfp6_e3m2[(b0 >> 6) | ((b1 & 0x0F) << 2)];
+        const int16_t k2 = kvalues_mxfp6_e3m2[(b1 >> 4) | ((b2 & 0x03) << 4)];
+        const int16_t k3 = kvalues_mxfp6_e3m2[b2 >> 2];
+
+        const int8_t y0 = q8[4*j + 0];
+        const int8_t y1 = q8[4*j + 1];
+        const int8_t y2 = q8[4*j + 2];
+        const int8_t y3 = q8[4*j + 3];
+
+        sumf_1 += (float)(k0 * y0);
+        sumf_1 += (float)(k1 * y1);
+        sumf_1 += (float)(k2 * y2);
+        sumf_1 += (float)(k3 * y3);
+    }
+    const float d_q6 = ggml_cuda_e8m0_to_fp32(bq6->e);
+
+    // q8_1
+    const float d_q8_0 = __half2float(bq8_1->ds[0]);
+    const float d_q8_1 = __half2float(bq8_1->ds[1]);
+
+    // d_q6 * scale_factor(0.0625) * (sum(x_a*y_a)*d_q8_a + sum(x_b*y_b)*d_q8_b)
+    return d_q6 * 0.0625f * (sumf_0 * d_q8_0 + sumf_1 * d_q8_1);
+}
+
 #define VDR_Q2_K_Q8_1_MMVQ 1
 #define VDR_Q2_K_Q8_1_MMQ  4
 

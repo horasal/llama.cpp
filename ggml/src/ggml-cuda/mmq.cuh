@@ -60,6 +60,8 @@ static mmq_q8_1_ds_layout mmq_get_q8_1_ds_layout(const ggml_type type_x) {
             return MMQ_Q8_1_DS_LAYOUT_D4;
         case GGML_TYPE_MXFP4:
             return MMQ_Q8_1_DS_LAYOUT_D4;
+        case GGML_TYPE_MXFP6:
+            return MMQ_Q8_1_DS_LAYOUT_D4;
         case GGML_TYPE_Q2_K:
             return MMQ_Q8_1_DS_LAYOUT_D2S6;
         case GGML_TYPE_Q3_K:
@@ -173,6 +175,7 @@ static constexpr __host__ __device__ tile_x_sizes mmq_get_dp4a_tile_x_sizes(ggml
         case GGML_TYPE_Q5_1:    return MMQ_DP4A_TXS_Q8_1;
         case GGML_TYPE_Q8_0:    return MMQ_DP4A_TXS_Q8_0;
         case GGML_TYPE_MXFP4:   return MMQ_DP4A_TXS_Q8_1;
+        case GGML_TYPE_MXFP6_E3M2:   return MMQ_DP4A_TXS_Q8_1;
         case GGML_TYPE_Q2_K:    return MMQ_DP4A_TXS_Q2_K;
         case GGML_TYPE_Q3_K:    return MMQ_DP4A_TXS_Q3_K;
         case GGML_TYPE_Q4_K:    return MMQ_DP4A_TXS_Q4_K;
@@ -210,6 +213,7 @@ static constexpr __host__ __device__ int mmq_get_mma_tile_x_k(ggml_type type) {
         case GGML_TYPE_Q5_1:    return MMQ_MMA_TILE_X_K_Q8_1;
         case GGML_TYPE_Q8_0:    return MMQ_MMA_TILE_X_K_Q8_0;
         case GGML_TYPE_MXFP4:   return MMQ_MMA_TILE_X_K_Q8_1;
+        case GGML_TYPE_MXFP6_E3M2:   return MMQ_MMA_TILE_X_K_Q8_1;
         case GGML_TYPE_Q2_K:    return MMQ_MMA_TILE_X_K_Q2_K;
         case GGML_TYPE_Q3_K:    return MMQ_MMA_TILE_X_K_Q3_K;
         case GGML_TYPE_Q4_K:    return MMQ_MMA_TILE_X_K_Q8_1;
@@ -758,6 +762,62 @@ template <int mmq_y, bool need_check> static __device__ __forceinline__ void loa
 #else
         x_df[i*(MMQ_TILE_NE_K/QI_MXFP4) + i/QI_MXFP4 + kbxd] = ggml_cuda_e8m0_to_fp32(bxi->e)*0.5f;
 #endif // defined(AMD_MFMA_AVAILABLE) || defined(TURING_MMA_AVAILABLE)
+    }
+}
+
+template <int mmq_y, bool need_check> static __device__ __forceinline__ void load_tiles_mxfp6_e3m2(
+    const char * __restrict__ x, int16_t * __restrict__ x_tile,
+    const int kbx0, const int i_max, const int stride) {
+
+    constexpr int nwarps = mmq_get_nwarps_device();
+    constexpr int warp_size = ggml_cuda_get_physical_warp_size();
+
+    // load data for threads
+    constexpr int threads_per_row_qs = 8;
+    constexpr int nrows_qs = warp_size / threads_per_row_qs; // 32 / 8 = 4
+    const int txi_qs = threadIdx.x % threads_per_row_qs; // 0..7
+
+    int16_t * x_qs = x_tile;
+    float * x_df = (float *)(x_qs + 32); // txs.qs = 32
+
+#pragma unroll
+    for (int i0 = 0; i0 < mmq_y; i0 += nrows_qs * nwarps) {
+        int i = i0 + (nrows_qs == 1 ? threadIdx.y : threadIdx.y * nrows_qs + threadIdx.x / threads_per_row_qs);
+        if (need_check) {
+            i = min(i, i_max);
+        }
+
+        const block_mxfp6_e3m2 * bxi = (const block_mxfp6_e3m2 *) x + kbx0 + i * stride;
+
+        const uint8_t * q3 = bxi->qs + 3 * txi_qs;
+
+        const uint8_t b0 = q3[0];
+        const uint8_t b1 = q3[1];
+        const uint8_t b2 = q3[2];
+
+        const uint8_t v0_idx = b0 & 0x3F;
+        const uint8_t v1_idx = (b0 >> 6) | ((b1 & 0x0F) << 2);
+        const uint8_t v2_idx = (b1 >> 4) | ((b2 & 0x03) << 4);
+        const uint8_t v3_idx = b2 >> 2;
+
+        const int16_t k0 = kvalues_mxfp6_e3m2[v0_idx];
+        const int16_t k1 = kvalues_mxfp6_e3m2[v1_idx];
+        const int16_t k2 = kvalues_mxfp6_e3m2[v2_idx];
+        const int16_t k3 = kvalues_mxfp6_e3m2[v3_idx];
+
+        // [row 0: 32*i16] [row 1: 32*i16] ...
+        int16_t* x_qs_row = x_qs + i * 32; // MMQ_TILE_NE_K
+        const int k_dest = txi_qs * 4;
+
+        x_qs_row[k_dest + 0] = k0;
+        x_qs_row[k_dest + 1] = k1;
+        x_qs_row[k_dest + 2] = k2;
+        x_qs_row[k_dest + 3] = k3;
+
+        if (txi_qs == 0) {
+            float * x_df_row = x_df + i; // 1 float per row
+            *x_df_row = ggml_cuda_e8m0_to_fp32(bxi->e) * 0.0625f;
+        }
     }
 }
 
@@ -2943,6 +3003,14 @@ struct mmq_type_traits<mmq_x, mmq_y, need_check, GGML_TYPE_MXFP4> {
 };
 
 template <int mmq_x, int mmq_y, bool need_check>
+struct mmq_type_traits<mmq_x, mmq_y, need_check, GGML_TYPE_MXFP6_E3M2> {
+    static constexpr int              vdr          = VDR_MXFP6_E3M2_Q8_1_MMQ;
+    static constexpr load_tiles_mmq_t load_tiles   = load_tiles_mxfp6_e3m2<mmq_y, need_check>;
+    static constexpr vec_dot_mmq_t    vec_dot_mma  = vec_dot_q8_0_q8_1_mma<mmq_x, mmq_y, MMQ_Q8_1_DS_LAYOUT_D4>;
+    static constexpr vec_dot_mmq_t    vec_dot_dp4a = vec_dot_q8_0_q8_1_dp4a<mmq_x, mmq_y>;
+};
+
+template <int mmq_x, int mmq_y, bool need_check>
 struct mmq_type_traits<mmq_x, mmq_y, need_check, GGML_TYPE_Q2_K> {
     static constexpr int              vdr          = VDR_Q2_K_Q8_1_MMQ;
     static constexpr load_tiles_mmq_t load_tiles   = load_tiles_q2_K<mmq_y, need_check>;
@@ -3730,6 +3798,7 @@ extern DECL_MMQ_CASE(GGML_TYPE_Q5_0);
 extern DECL_MMQ_CASE(GGML_TYPE_Q5_1);
 extern DECL_MMQ_CASE(GGML_TYPE_Q8_0);
 extern DECL_MMQ_CASE(GGML_TYPE_MXFP4);
+extern DECL_MMQ_CASE(GGML_TYPE_MXFP6_E3M2);
 extern DECL_MMQ_CASE(GGML_TYPE_Q2_K);
 extern DECL_MMQ_CASE(GGML_TYPE_Q3_K);
 extern DECL_MMQ_CASE(GGML_TYPE_Q4_K);
