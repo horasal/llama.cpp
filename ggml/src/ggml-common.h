@@ -194,6 +194,14 @@ typedef struct {
 } block_mxfp4;
 static_assert(sizeof(block_mxfp4) == sizeof(uint8_t) + QK_MXFP4/2, "wrong mxfp4 block size/padding");
 
+#define QK_MXFP6_E3M2 32
+typedef struct {
+    uint8_t e; // E8M0
+    uint8_t qs[QK_MXFP6_E3M2 * 3 / 4]; // 6bits -> 8bits
+} block_mxfp6_e3m2;
+static_assert(sizeof(block_mxfp6_e3m2) == sizeof(uint8_t) + QK_MXFP6_E3M2 * 3 / 4, "wrong mxfp6_e3m2 block size/padding");
+
+
 #define QK5_0 32
 typedef struct {
     ggml_half d;           // delta
@@ -1093,6 +1101,15 @@ GGML_TABLE_END()
 // ref: https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf
 GGML_TABLE_BEGIN(int8_t, kvalues_mxfp4, 16)
     0, 1, 2, 3, 4, 6, 8, 12, 0, -1, -2, -3, -4, -6, -8, -12,
+GGML_TABLE_END()
+
+GGML_TABLE_BEGIN(int16_t, kvalues_mxfp6_e3m2, 64)
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28,
+    32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224,
+    256, 320, 384, 448,
+    0, -1, -2, -3, -4, -5, -6, -7, -8, -10, -12, -14, -16, -20, -24, -28,
+    -32, -40, -48, -56, -64, -80, -96, -112, -128, -160, -192, -224,
+    -256, -320, -384, -448,
 GGML_TABLE_END()
 
 #define NGRID_IQ1S 2048

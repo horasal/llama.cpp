@@ -417,7 +417,8 @@ extern "C" {
         // GGML_TYPE_IQ4_NL_4_8 = 37,
         // GGML_TYPE_IQ4_NL_8_8 = 38,
         GGML_TYPE_MXFP4   = 39, // MXFP4 (1 block)
-        GGML_TYPE_COUNT   = 40,
+        GGML_TYPE_MXFP6_E3M2   = 40,
+        GGML_TYPE_COUNT   = 41,
     };
 
     // precision
@@ -453,6 +454,7 @@ extern "C" {
         GGML_FTYPE_MOSTLY_IQ1_M   = 23, // except 1d tensors
         GGML_FTYPE_MOSTLY_BF16    = 24, // except 1d tensors
         GGML_FTYPE_MOSTLY_MXFP4   = 25, // except 1d tensors
+        GGML_FTYPE_MOSTLY_MXFP6_E3M2   = 26, // except 1d tensors
     };
 
     // available tensor operations:
