@@ -220,7 +220,8 @@ void ggml_vec_dot_mxfp4_q8_0_generic(int n, float * GGML_RESTRICT s, size_t bs, 
     *s = sumf;
 }
 
-void ggml_vec_dot_mxfp6_e3m2_q8_0_generic(int n, float * GGML_RESTRICT s, size_t bs, const void * GGML_RESTRICT vx, size_t bx, const void * GGML_RESTRICT vy, size_t by, int nrc) {
+void ggml_vec_dot_mxfp6_e3m2_q8_0_generic(int n, float * GGML_RESTRICT s, size_t bs, const void * GGML_RESTRICT vx, size_t bx, const void * GGML_RESTRICT vy, size_t by, int nrc)
+{
     assert(nrc == 1);
     UNUSED(nrc);
     UNUSED(bx);
@@ -240,18 +241,34 @@ void ggml_vec_dot_mxfp6_e3m2_q8_0_generic(int n, float * GGML_RESTRICT s, size_t
     for (; ib < nb; ++ib) {
         const float d = GGML_CPU_FP16_TO_FP32(y[ib].d)*GGML_E8M0_TO_FP32_HALF(x[ib].e);
         int sumi1 = 0;
-        int sumi2 = 0;
-        int sumi3 = 0;
-        int sumi4 = 0;
-            // Q8_0 (y) * MXFP6 (block_size = 32)
-            for (int j = 0; j < QK_MXFP6_E3M2/4; ++j) {
-                sumi1 += y[ib].qs[j +                   0] * kvalues_mxfp6_e3m2[ x[ib].qs[3 * j] & 0x3f];
-                sumi2 += y[ib].qs[j + 1 * QK_MXFP6_E3M2/4] * kvalues_mxfp6_e3m2[(x[ib].qs[3 * j]     >> 6) | ((x[ib].qs[3 * j + 1] & 0x0F) << 2)];
-                sumi3 += y[ib].qs[j + 2 * QK_MXFP6_E3M2/4] * kvalues_mxfp6_e3m2[(x[ib].qs[3 * j + 1] >> 4) | ((x[ib].qs[3 * j + 2] & 0x03) << 4)];
-                sumi4 += y[ib].qs[j + 3 * QK_MXFP6_E3M2/4] * kvalues_mxfp6_e3m2[ x[ib].qs[3 * j + 2] >> 2];
-            }
-            sumf += d * (sumi1 + sumi2 + sumi3 + sumi4);
+        // Q8_0 (y) * MXFP6 (block_size = 32)
+        for (int j = 0; j < QK_MXFP6_E3M2/4; ++j) {
+            // Current Packed MXFP6
+            const uint8_t* q3 = x[ib].qs + 3 * j;
+            // Current Packed Q8_0
+            const int8_t* q8 = y[ib].qs + 4 * j;
+
+            const uint8_t b0 = q3[0];
+            const uint8_t b1 = q3[1];
+            const uint8_t b2 = q3[2];
+
+            const uint8_t v0_idx = b0 & 0x3F;
+            const uint8_t v0_idx = b0 & 0x3F;
+            const uint8_t v1_idx = (b0 >> 6) | ((b1 & 0x0F) << 2);
+            const uint8_t v2_idx = (b1 >> 4) | ((b2 & 0x03) << 4);
+            const uint8_t v3_idx = b2 >> 2;
+
+            // (y[4*j + 0] * x[4*j + 0])
+            sumi += q8[0] * kvalues_mxfp6_e3m2[v0_idx];
+            // (y[4*j + 1] * x[4*j + 1])
+            sumi += q8[1] * kvalues_mxfp6_e3m2[v1_idx];
+            // (y[4*j + 2] * x[4*j + 2])
+            sumi += q8[2] * kvalues_mxfp6_e3m2[v2_idx];
+            // (y[4*j + 3] * x[4*j + 3])
+            sumi += q8[3] * kvalues_mxfp6_e3m2[v3_idx];
         }
+        sumf += d * sumi;
+    }
     *s = sumf;
 }
 

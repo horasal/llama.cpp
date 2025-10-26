@@ -308,12 +308,11 @@ void quantize_row_mxfp6_e3m2_ref(const float * GGML_RESTRICT x, block_mxfp6_e3m2
         y[i].e = e;
 
         // 4 * 6bit quant -> 3 bytes
-        // Final Size: qk * 3 / 4
         for (int j = 0; j < qk / 4; ++j) {
-            const uint8_t x0 = best_index_mxfp6_e3m2(x[i*qk + 0          + j], d);
-            const uint8_t x1 = best_index_mxfp6_e3m2(x[i*qk + 1 * qk / 4 + j], d);
-            const uint8_t x2 = best_index_mxfp6_e3m2(x[i*qk + 2 * qk / 4 + j], d);
-            const uint8_t x3 = best_index_mxfp6_e3m2(x[i*qk + 3 * qk / 4 + j], d);
+            const uint8_t x0 = best_index_mxfp6_e3m2(x[i*qk + 4*j + 0], d);
+            const uint8_t x1 = best_index_mxfp6_e3m2(x[i*qk + 4*j + 1], d);
+            const uint8_t x2 = best_index_mxfp6_e3m2(x[i*qk + 4*j + 2], d);
+            const uint8_t x3 = best_index_mxfp6_e3m2(x[i*qk + 4*j + 3], d);
 
             // 1100 0000
             y[i].qs[3*j] = x0 | ((x1 & 0x03) << 6);
@@ -500,15 +499,15 @@ void dequantize_row_mxfp6_e3m2(const block_mxfp6_e3m2 * GGML_RESTRICT x, float *
         const float d = GGML_E8M0_TO_FP32_HALF(x[i].e);
 
         for (int j = 0; j < qk / 4; ++j) {
-            const int8_t x0 = kvalues_mxfp6_e3m2[x[i].qs[3 * j] & 0x3F];
-            const int8_t x1 = kvalues_mxfp6_e3m2[(x[i].qs[3 * j] >> 6) | ((x[i].qs[3 * j + 1] & 0x0F) << 2)];
-            const int8_t x2 = kvalues_mxfp6_e3m2[(x[i].qs[3 * j + 1] >> 4) | ((x[i].qs[3 * j + 2] & 0x03) << 4)];
-            const int8_t x3 = kvalues_mxfp6_e3m2[x[i].qs[3 * j + 2] >> 2];
+            const int16_t x0 = kvalues_mxfp6_e3m2[x[i].qs[3 * j] & 0x3F];
+            const int16_t x1 = kvalues_mxfp6_e3m2[(x[i].qs[3 * j] >> 6) | ((x[i].qs[3 * j + 1] & 0x0F) << 2)];
+            const int16_t x2 = kvalues_mxfp6_e3m2[(x[i].qs[3 * j + 1] >> 4) | ((x[i].qs[3 * j + 2] & 0x03) << 4)];
+            const int16_t x3 = kvalues_mxfp6_e3m2[x[i].qs[3 * j + 2] >> 2];
 
-            y[i*qk + j + 0   ] = x0*d;
-            y[i*qk + j + 1 * qk/4] = x1*d;
-            y[i*qk + j + 2 * qk/4] = x2*d;
-            y[i*qk + j + 3 * qk/4] = x3*d;
+            y[i*qk + 4 * j + 0] = x0*d;
+            y[i*qk + 4 * j + 1] = x1*d;
+            y[i*qk + 4 * j + 2] = x2*d;
+            y[i*qk + 4 * j + 3] = x3*d;
         }
     }
 }
