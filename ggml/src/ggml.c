@@ -1346,8 +1346,8 @@ enum ggml_type ggml_ftype_to_ggml_type(enum ggml_ftype ftype) {
         case GGML_FTYPE_MOSTLY_Q5_1:          wtype = GGML_TYPE_Q5_1;  break;
         case GGML_FTYPE_MOSTLY_Q8_0:          wtype = GGML_TYPE_Q8_0;  break;
         case GGML_FTYPE_MOSTLY_MXFP4:         wtype = GGML_TYPE_MXFP4; break;
-        case GGML_FTYPE_MOSTLY_MXFP6_E3M2:     wtype = GGML_TYPE_MXFP6_E3M2; break;
-        case GGML_FTYPE_MOSTLY_MXFP6_E2M3:     wtype = GGML_TYPE_MXFP6_E2M3; break;
+        case GGML_FTYPE_MOSTLY_MXFP6_E3M2:    wtype = GGML_TYPE_MXFP6_E3M2; break;
+        case GGML_FTYPE_MOSTLY_MXFP6_E2M3:    wtype = GGML_TYPE_MXFP6_E2M3; break;
         case GGML_FTYPE_MOSTLY_Q2_K:          wtype = GGML_TYPE_Q2_K;  break;
         case GGML_FTYPE_MOSTLY_Q3_K:          wtype = GGML_TYPE_Q3_K;  break;
         case GGML_FTYPE_MOSTLY_Q4_K:          wtype = GGML_TYPE_Q4_K;  break;
