@@ -10,10 +10,12 @@ from .lazy import LazyNumpyTensor
 
 import numpy as np
 
+
 # see ggml_e8m0_to_fp32_half in ggml-impl.h
 def e8m0_to_fp32_half(x: np.ndarray) -> np.ndarray:
     bits = np.where(x < 2, np.uint32(0x00200000) << np.uint32(x), np.uint32(x - 1) << np.uint32(23))
     return bits.view(np.float32)
+
 
 def quant_shape_to_byte_shape(shape: Sequence[int], quant_type: GGMLQuantizationType) -> tuple[int, ...]:
     block_size, type_size = GGML_QUANT_SIZES[quant_type]
@@ -663,6 +665,10 @@ class MXFP4(__Quant, qtype=GGMLQuantizationType.MXFP4):
     kvalues = (0, 1, 2, 3, 4, 6, 8, 12, 0, -1, -2, -3, -4, -6, -8, -12)
 
     @classmethod
+    def __e8m0_to_fp32_half(cls, x: np.ndarray) -> np.ndarray:
+        e8m0_to_fp32_half(x)
+
+    @classmethod
     def quantize_blocks(cls, blocks: np.ndarray) -> np.ndarray:
         n_blocks = blocks.shape[0]
 
@@ -671,7 +677,7 @@ class MXFP4(__Quant, qtype=GGMLQuantizationType.MXFP4):
         with np.errstate(divide="ignore"):
             e = np.where(d > 0, np.floor(np.log2(d)) - 2 + 127, 0).astype(np.uint8)
 
-        d = cls.e8m0_to_fp32_half(e)
+        d = cls.__e8m0_to_fp32_half(e)
 
         kvalues = np.array(cls.kvalues, dtype=np.int8).reshape((1, 1, 16))
 
@@ -691,7 +697,7 @@ class MXFP4(__Quant, qtype=GGMLQuantizationType.MXFP4):
 
         e, qs = np.hsplit(blocks, [1])
 
-        d = cls.e8m0_to_fp32_half(e)
+        d = cls.__e8m0_to_fp32_half(e)
 
         qs = qs.reshape((n_blocks, 1, cls.block_size // 2)) >> np.array([0, 4], dtype=np.uint8).reshape((1, 2, 1))
         qs = (qs & np.uint8(0x0F)).view(np.int8)
@@ -700,6 +706,7 @@ class MXFP4(__Quant, qtype=GGMLQuantizationType.MXFP4):
         qs = np.take_along_axis(kvalues, qs, axis=-1).reshape((n_blocks, cls.block_size))
 
         return (d * qs.astype(np.float32))
+
 
 class MXFP6E3M2(__Quant, qtype=GGMLQuantizationType.MXFP6_E3M2):
     # e3m2 values (origin * 16)
@@ -714,6 +721,10 @@ class MXFP6E3M2(__Quant, qtype=GGMLQuantizationType.MXFP6_E3M2):
     )
 
     @classmethod
+    def __e8m0_to_fp32_half(cls, x: np.ndarray) -> np.ndarray:
+        e8m0_to_fp32_half(x)
+
+    @classmethod
     def quantize_blocks(cls, blocks: np.ndarray) -> np.ndarray:
         n_blocks = blocks.shape[0]
 
@@ -726,7 +737,7 @@ class MXFP6E3M2(__Quant, qtype=GGMLQuantizationType.MXFP6_E3M2):
             )
 
         # d is float of above e8m0
-        d = cls.e8m0_to_fp32_half(e)
+        d = cls.__e8m0_to_fp32_half(e)
 
         kvalues = np.array(cls.kvalues, dtype=np.int16).reshape((1, 1, 64))
 
@@ -763,7 +774,7 @@ class MXFP6E3M2(__Quant, qtype=GGMLQuantizationType.MXFP6_E3M2):
 
         e, qs = np.hsplit(blocks, [1])
 
-        d = cls.e8m0_to_fp32_half(e).astype(np.float32)
+        d = cls.__e8m0_to_fp32_half(e).astype(np.float32)
 
         qs_groups = qs.reshape((n_blocks, -1, 3))
         b0 = qs_groups[..., 0]
@@ -797,6 +808,10 @@ class MXFP6E2M3(__Quant, qtype=GGMLQuantizationType.MXFP6_E2M3):
     )
 
     @classmethod
+    def __e8m0_to_fp32_half(cls, x: np.ndarray) -> np.ndarray:
+        e8m0_to_fp32_half(x)
+
+    @classmethod
     def quantize_blocks(cls, blocks: np.ndarray) -> np.ndarray:
         n_blocks = blocks.shape[0]
 
@@ -809,7 +824,7 @@ class MXFP6E2M3(__Quant, qtype=GGMLQuantizationType.MXFP6_E2M3):
             )
 
         # d is float of above e8m0
-        d = cls.e8m0_to_fp32_half(e)
+        d = cls.__e8m0_to_fp32_half(e)
 
         kvalues = np.array(cls.kvalues, dtype=np.int16).reshape((1, 1, 64))
 
@@ -846,7 +861,7 @@ class MXFP6E2M3(__Quant, qtype=GGMLQuantizationType.MXFP6_E2M3):
 
         e, qs = np.hsplit(blocks, [1])
 
-        d = cls.e8m0_to_fp32_half(e).astype(np.float32)
+        d = cls.__e8m0_to_fp32_half(e).astype(np.float32)
 
         qs_groups = qs.reshape((n_blocks, -1, 3))
         b0 = qs_groups[..., 0]
