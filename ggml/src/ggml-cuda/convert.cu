@@ -476,8 +476,8 @@ static __global__ void dequantize_block_mxfp4(const void * __restrict__ vx, dst_
     const uint8_t  * q4 = x[ib].qs + 4*il;
     const float d = ggml_cuda_e8m0_to_fp32(x[ib].e);
     for (int j = 0; j < 4; ++j) {
-        y[j+ 0] = d * kvalues_mxfp4[q4[j] & 0xf]*0.5f;
-        y[j+16] = d * kvalues_mxfp4[q4[j] >>  4]*0.5f;
+        y[j+ 0] = d * kvalues_mxfp4[q4[j] & 0xf];
+        y[j+16] = d * kvalues_mxfp4[q4[j] >>  4];
     }
 }
 
