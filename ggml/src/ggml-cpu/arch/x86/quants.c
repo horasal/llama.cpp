@@ -861,7 +861,7 @@ void ggml_vec_dot_mxfp6_e3m2_q8_0(int n, float * GGML_RESTRICT s, size_t bs, con
         const int16_t* kvalues = (const int16_t*)kvalues_mxfp6_e3m2;
 
         for (int i = 0; i < nb; ++i) {
-            const float d = GGML_CPU_FP16_TO_FP32(y[i].d) * GGML_E8M0_TO_FP32_HALF(x[i].e);
+            const float d = GGML_CPU_FP16_TO_FP32(y[i].d) * GGML_E8M0_TO_FP32_ANY(x[i].e, 4);
 
             const __m256i q8_v = _mm256_loadu_si256((const __m256i*)y[i].qs);
 
@@ -932,7 +932,7 @@ void ggml_vec_dot_mxfp6_e2m3_q8_0(int n, float * GGML_RESTRICT s, size_t bs, con
     const int16_t* kvalues = (const int16_t*)kvalues_mxfp6_e2m3;
 
     for (int i = 0; i < nb; ++i) {
-        const float d = GGML_CPU_FP16_TO_FP32(y[i].d) * GGML_E8M0_TO_FP32_HALF(x[i].e);
+        const float d = GGML_CPU_FP16_TO_FP32(y[i].d) * GGML_E8M0_TO_FP32_ANY(x[i].e, 3);
 
         const __m256i q8_v = _mm256_loadu_si256((const __m256i*)y[i].qs);
 

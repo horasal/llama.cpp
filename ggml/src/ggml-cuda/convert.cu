@@ -513,10 +513,10 @@ static __global__ void dequantize_block_mxfp6_e3m2(const void * __restrict__ vx,
         const uint8_t v2_idx = (b1 >> 4) | ((b2 & 0x03) << 4);
         const uint8_t v3_idx = b2 >> 2;
 
-        y[y_offset + 0] = d * kvalues_mxfp6_e3m2[v0_idx]*0.0625f;
-        y[y_offset + 1] = d * kvalues_mxfp6_e3m2[v1_idx]*0.0625f;
-        y[y_offset + 2] = d * kvalues_mxfp6_e3m2[v2_idx]*0.0625f;
-        y[y_offset + 3] = d * kvalues_mxfp6_e3m2[v3_idx]*0.0625f;
+        y[y_offset + 0] = d * kvalues_mxfp6_e3m2[v0_idx]*MXFP6_E3M2_SCALER;
+        y[y_offset + 1] = d * kvalues_mxfp6_e3m2[v1_idx]*MXFP6_E3M2_SCALER;
+        y[y_offset + 2] = d * kvalues_mxfp6_e3m2[v2_idx]*MXFP6_E3M2_SCALER;
+        y[y_offset + 3] = d * kvalues_mxfp6_e3m2[v3_idx]*MXFP6_E3M2_SCALER;
     }
 }
 
@@ -552,11 +552,10 @@ static __global__ void dequantize_block_mxfp6_e2m3(const void * __restrict__ vx,
         const uint8_t v2_idx = (b1 >> 4) | ((b2 & 0x03) << 4);
         const uint8_t v3_idx = b2 >> 2;
 
-        // Is this correct?
-        y[y_offset + 0] = d * kvalues_mxfp6_e2m3[v0_idx]*0.0625f;
-        y[y_offset + 1] = d * kvalues_mxfp6_e2m3[v1_idx]*0.0625f;
-        y[y_offset + 2] = d * kvalues_mxfp6_e2m3[v2_idx]*0.0625f;
-        y[y_offset + 3] = d * kvalues_mxfp6_e2m3[v3_idx]*0.0625f;
+        y[y_offset + 0] = d * kvalues_mxfp6_e2m3[v0_idx]*MXFP6_E2M3_SCALER;
+        y[y_offset + 1] = d * kvalues_mxfp6_e2m3[v1_idx]*MXFP6_E2M3_SCALER;
+        y[y_offset + 2] = d * kvalues_mxfp6_e2m3[v2_idx]*MXFP6_E2M3_SCALER;
+        y[y_offset + 3] = d * kvalues_mxfp6_e2m3[v3_idx]*MXFP6_E2M3_SCALER;
     }
 }
 

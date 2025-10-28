@@ -243,7 +243,7 @@ void ggml_vec_dot_mxfp6_e3m2_q8_0_generic(int n, float * GGML_RESTRICT s, size_t
     float sumf = 0;
 
     for (; ib < nb; ++ib) {
-        const float d = GGML_CPU_FP16_TO_FP32(y[ib].d)*GGML_E8M0_TO_FP32_HALF(x[ib].e);
+        const float d = GGML_CPU_FP16_TO_FP32(y[ib].d)*GGML_E8M0_TO_FP32_ANY(x[ib].e, 4);
         int sumi = 0;
         // Q8_0 (y) * MXFP6 (block_size = 32)
         for (int j = 0; j < QK_MXFP6_E3M2/4; ++j) {
@@ -294,7 +294,7 @@ void ggml_vec_dot_mxfp6_e2m3_q8_0_generic(int n, float * GGML_RESTRICT s, size_t
     float sumf = 0;
 
     for (; ib < nb; ++ib) {
-        const float d = GGML_CPU_FP16_TO_FP32(y[ib].d)*GGML_E8M0_TO_FP32_HALF(x[ib].e);
+        const float d = GGML_CPU_FP16_TO_FP32(y[ib].d)*GGML_E8M0_TO_FP32_ANY(x[ib].e, 3);
         int sumi = 0;
         // Q8_0 (y) * MXFP6 (block_size = 32)
         for (int j = 0; j < QK_MXFP6_E2M3/4; ++j) {
